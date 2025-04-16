@@ -18,6 +18,7 @@ type Workout = {
   sets: number;
   reps: number;
   weight: number;
+  createdAt: string; // ISO string format for dates
 };
 
 // ✅ Custom Text Input Component
@@ -27,12 +28,14 @@ const CustomTextInput = ({
   value,
   onChange,
   type = "text",
+  required = false,
 }: {
   id: string;
   label: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   type?: string;
+  required?: boolean;
 }) => (
   <div className="relative">
     <input
@@ -40,6 +43,7 @@ const CustomTextInput = ({
       type={type}
       value={value}
       onChange={onChange}
+      required={required}
       className="peer text-white p-3 text-sm rounded-xl border border-zinc-700 focus:ring-2 focus:ring-zinc-500 outline-none w-full appearance-none [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
     />
     <label
@@ -47,6 +51,7 @@ const CustomTextInput = ({
       className="absolute text-sm font-semibold text-zinc-400 bg-zinc-900 rounded-3xl px-2 left-3 -top-3 transition-all peer-placeholder-shown:top-3 peer-focus:text-zinc-400"
     >
       {label}
+      {required && <span className="text-zinc-500 ml-1">*</span>}
     </label>
   </div>
 );
@@ -66,6 +71,7 @@ const WorkoutTracker = () => {
     sets: 0,
     reps: 0,
     weight: 0,
+    createdAt: new Date().toISOString(),
   });
 
   // ✅ Persist on change
@@ -74,17 +80,76 @@ const WorkoutTracker = () => {
   }, [workouts]);
 
   // ✅ Add Workout
-  const handleAddWorkout = () => {
-    if (!newWorkout.exercise.trim()) return;
+  const handleAddWorkout = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newWorkout.exercise.trim()) {
+      // Focus on the exercise input and highlight it
+      const exerciseInput = document.getElementById("exercise");
+      if (exerciseInput) {
+        exerciseInput.focus();
+      }
+      return;
+    }
 
     const id = Date.now();
     setWorkouts([...workouts, { id, ...newWorkout }]);
-    setNewWorkout({ exercise: "", sets: 0, reps: 0, weight: 0 });
+    setNewWorkout({
+      exercise: "",
+      sets: 0,
+      reps: 0,
+      weight: 0,
+      createdAt: new Date().toISOString(), // Always use current date/time for new workouts
+    });
   };
 
   // ✅ Delete Workout
   const handleDeleteWorkout = (id: number) => {
     setWorkouts(workouts.filter((w: Workout) => w.id !== id));
+  };
+
+  // ✅ Group workouts by date
+  const groupWorkoutsByDate = () => {
+    const grouped: Record<string, Workout[]> = {};
+
+    workouts.forEach((workout) => {
+      const date = new Date(workout.createdAt);
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      let dateKey;
+
+      if (date.toDateString() === today.toDateString()) {
+        dateKey = "Today";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dateKey = "Yesterday";
+      } else {
+        dateKey = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      }
+
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+
+      grouped[dateKey].push(workout);
+    });
+
+    // Sort the dates
+    return Object.entries(grouped).sort((a, b) => {
+      if (a[0] === "Today") return -1;
+      if (b[0] === "Today") return 1;
+      if (a[0] === "Yesterday") return -1;
+      if (b[0] === "Yesterday") return 1;
+
+      // Compare dates for other entries
+      const dateA = new Date(a[1][0].createdAt);
+      const dateB = new Date(b[1][0].createdAt);
+      return dateB.getTime() - dateA.getTime(); // Sort in descending order
+    });
   };
 
   return (
@@ -139,7 +204,7 @@ const WorkoutTracker = () => {
         className={`${outfit.className} min-h-screen flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 overflow-auto`}
       >
         <div className="w-full max-w-3xl mx-auto p-6 mt-10 bg-zinc-900/50 backdrop-blur-sm rounded-3xl shadow-lg border border-zinc-700 relative z-20">
-          <h1 className="text-4xl font-extrabold mb-2 flex items-center gap-3 text-white">
+          <h1 className="text-2xl sm:text-4xl font-extrabold mb-2 flex items-center gap-3 text-white">
             <FaDumbbell className="text-zinc-400" />
             Workout Tracker
           </h1>
@@ -158,6 +223,7 @@ const WorkoutTracker = () => {
                 onChange={(e) =>
                   setNewWorkout({ ...newWorkout, exercise: e.target.value })
                 }
+                required={true}
               />
 
               {/* Exercise Suggestions */}
@@ -245,32 +311,41 @@ const WorkoutTracker = () => {
               <p className="text-lg">You have not recorded any workout yet.</p>
             </div>
           ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {workouts.map((workout: Workout) => (
-                <li
-                  key={workout.id}
-                  className="bg-zinc-700/90 backdrop-blur-sm border border-zinc-600 p-4 rounded-2xl shadow-sm"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-lg font-semibold text-white">
-                      {workout.exercise}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteWorkout(workout.id)}
-                      className="text-red-400 hover:text-red-300 transition cursor-pointer"
-                      title="Delete"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
-                  <div className="text-sm text-zinc-300 ml-1 space-y-1">
-                    <p>Sets: {workout.sets}</p>
-                    <p>Reps: {workout.reps}</p>
-                    <p>Weight: {workout.weight} lbs</p>
-                  </div>
-                </li>
+            <div className="space-y-6">
+              {groupWorkoutsByDate().map(([dateGroup, dateWorkouts]) => (
+                <div key={dateGroup}>
+                  <h3 className="text-xl font-semibold text-zinc-300 mb-3 border-b border-zinc-700 pb-2">
+                    {dateGroup}
+                  </h3>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {dateWorkouts.map((workout: Workout) => (
+                      <li
+                        key={workout.id}
+                        className="bg-zinc-700/90 backdrop-blur-sm border border-zinc-600 p-4 rounded-2xl shadow-sm"
+                      >
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-lg font-semibold text-white">
+                            {workout.exercise}
+                          </span>
+                          <button
+                            onClick={() => handleDeleteWorkout(workout.id)}
+                            className="text-red-400 hover:text-red-300 transition cursor-pointer"
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                        <div className="text-sm text-zinc-300 ml-1 space-y-1">
+                          <p>Sets: {workout.sets}</p>
+                          <p>Reps: {workout.reps}</p>
+                          <p>Weight: {workout.weight} lbs</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>
