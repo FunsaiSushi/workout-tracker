@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { FaDumbbell, FaTrash } from "react-icons/fa";
 import { Outfit } from "next/font/google";
 import Image from "next/image";
+import { Toaster, toast } from "sonner";
 
 // Initialize the Outfit font
 const outfit = Outfit({
@@ -150,13 +151,20 @@ const WorkoutTracker = () => {
       weight: 0,
       createdAt: new Date().toISOString(), // Always use current date/time for new workouts
     });
+
+    // Show toast notification with Sonner
+    toast.success("Workout added successfully!");
   };
 
   // ✅ Delete Workout
   const handleDeleteWorkout = (id: number) => {
+    const workoutName = workoutToDelete?.exercise || "Workout";
     setWorkouts(workouts.filter((w: Workout) => w.id !== id));
     setModalOpen(false);
     setWorkoutToDelete(null);
+
+    // Show toast notification with Sonner
+    toast.success(`${workoutName} deleted successfully`);
   };
 
   // Show delete confirmation
@@ -266,6 +274,9 @@ const WorkoutTracker = () => {
       <div
         className={`${outfit.className} min-h-screen flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 overflow-auto`}
       >
+        {/* Sonner Toaster component */}
+        <Toaster position="top-center" theme="dark" />
+
         <div className="w-full max-w-3xl mx-auto p-6 mt-10 bg-zinc-900/50 backdrop-blur-sm rounded-3xl shadow-lg border border-zinc-700 relative z-20">
           <h1 className="text-2xl sm:text-4xl font-extrabold mb-2 flex items-center gap-3 text-white">
             <FaDumbbell className="text-zinc-400" />
