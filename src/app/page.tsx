@@ -21,6 +21,51 @@ type Workout = {
   createdAt: string; // ISO string format for dates
 };
 
+// ✅ Confirmation Modal Component
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  workout,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  workout: Workout | null;
+}) => {
+  if (!isOpen || !workout) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div
+        className="bg-zinc-800 rounded-2xl max-w-md w-full p-6 border border-zinc-600 shadow-xl"
+        onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling to backdrop
+      >
+        <h3 className="text-xl font-bold text-white mb-4">Delete Workout</h3>
+        <p className="text-zinc-300 mb-6">
+          Are you sure you want to delete{" "}
+          <span className="font-semibold text-white">{workout.exercise}</span>?
+          This action cannot be undone.
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 rounded-xl transition ease-in-out-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl transition ease-in-out-colors cursor-pointer"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ✅ Custom Text Input Component
 const CustomTextInput = ({
   id,
@@ -48,7 +93,7 @@ const CustomTextInput = ({
     />
     <label
       htmlFor={id}
-      className="absolute text-sm font-semibold text-zinc-400 bg-zinc-900 rounded-3xl px-2 left-3 -top-3 transition-all peer-placeholder-shown:top-3 peer-focus:text-zinc-400"
+      className="absolute text-sm font-semibold text-zinc-400 bg-zinc-950 rounded-3xl px-2 left-3 -top-3 transition ease-in-out-all peer-placeholder-shown:top-3 peer-focus:text-zinc-400"
     >
       {label}
       {required && <span className="text-zinc-500 ml-1">*</span>}
@@ -73,6 +118,10 @@ const WorkoutTracker = () => {
     weight: 0,
     createdAt: new Date().toISOString(),
   });
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null);
 
   // ✅ Persist on change
   useEffect(() => {
@@ -106,6 +155,20 @@ const WorkoutTracker = () => {
   // ✅ Delete Workout
   const handleDeleteWorkout = (id: number) => {
     setWorkouts(workouts.filter((w: Workout) => w.id !== id));
+    setModalOpen(false);
+    setWorkoutToDelete(null);
+  };
+
+  // Show delete confirmation
+  const showDeleteConfirmation = (workout: Workout) => {
+    setWorkoutToDelete(workout);
+    setModalOpen(true);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setModalOpen(false);
+    setWorkoutToDelete(null);
   };
 
   // ✅ Group workouts by date
@@ -240,7 +303,7 @@ const WorkoutTracker = () => {
                     key={exercise}
                     type="button"
                     onClick={() => setNewWorkout({ ...newWorkout, exercise })}
-                    className="px-3 py-1 bg-zinc-700 text-zinc-300 text-sm rounded-lg hover:bg-zinc-600 transition-colors"
+                    className="px-3 py-1 bg-zinc-700 text-zinc-300 text-sm rounded-lg hover:bg-zinc-600 transition ease-in-out-colors"
                   >
                     {exercise}
                   </button>
@@ -281,7 +344,7 @@ const WorkoutTracker = () => {
               {/* Weight Input */}
               <CustomTextInput
                 id="weight"
-                label="Weight (lbs)"
+                label="Weight (kilos)"
                 type="number"
                 value={newWorkout.weight}
                 onChange={(e) =>
@@ -296,7 +359,7 @@ const WorkoutTracker = () => {
 
           <button
             onClick={handleAddWorkout}
-            className="flex items-center justify-center w-full p-3 bg-zinc-200 text-black text-lg font-semibold rounded-xl hover:bg-zinc-300 transition cursor-pointer"
+            className="flex items-center justify-center w-full p-3 bg-zinc-200 text-black text-lg font-semibold rounded-xl hover:bg-zinc-300/90 transition ease-in-out cursor-pointer"
           >
             Add Workout
           </button>
@@ -328,8 +391,8 @@ const WorkoutTracker = () => {
                             {workout.exercise}
                           </span>
                           <button
-                            onClick={() => handleDeleteWorkout(workout.id)}
-                            className="text-red-400 hover:text-red-300 transition cursor-pointer"
+                            onClick={() => showDeleteConfirmation(workout)}
+                            className="text-red-400 hover:text-red-300 transition ease-in-out cursor-pointer"
                             title="Delete"
                           >
                             <FaTrash />
@@ -338,7 +401,7 @@ const WorkoutTracker = () => {
                         <div className="text-sm text-zinc-300 ml-1 space-y-1">
                           <p>Sets: {workout.sets}</p>
                           <p>Reps: {workout.reps}</p>
-                          <p>Weight: {workout.weight} lbs</p>
+                          <p>Weight: {workout.weight} kilos</p>
                         </div>
                       </li>
                     ))}
@@ -349,6 +412,16 @@ const WorkoutTracker = () => {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={modalOpen}
+        onClose={closeModal}
+        onConfirm={() =>
+          workoutToDelete && handleDeleteWorkout(workoutToDelete.id)
+        }
+        workout={workoutToDelete}
+      />
     </>
   );
 };
