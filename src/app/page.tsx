@@ -12,7 +12,7 @@ const outfit = Outfit({
   display: "swap",
 });
 
-// ✅ Workout Type
+// Workout Type
 type Workout = {
   id: number;
   exercise: string;
@@ -22,7 +22,7 @@ type Workout = {
   createdAt: string; // ISO string format for dates
 };
 
-// ✅ Confirmation Modal Component
+// Confirmation Modal Component
 const ConfirmationModal = ({
   isOpen,
   onClose,
@@ -67,7 +67,7 @@ const ConfirmationModal = ({
   );
 };
 
-// ✅ Custom Text Input Component
+// Custom Text Input Component
 const CustomTextInput = ({
   id,
   label,
@@ -103,7 +103,7 @@ const CustomTextInput = ({
 );
 
 const WorkoutTracker = () => {
-  // ✅ Workout State with Local Storage
+  // Workout State with Local Storage
   const [workouts, setWorkouts] = useState<Workout[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("workouts");
@@ -124,12 +124,12 @@ const WorkoutTracker = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null);
 
-  // ✅ Persist on change
+  // Persist on change
   useEffect(() => {
     localStorage.setItem("workouts", JSON.stringify(workouts));
   }, [workouts]);
 
-  // ✅ Add Workout
+  // Add Workout
   const handleAddWorkout = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -156,7 +156,7 @@ const WorkoutTracker = () => {
     toast.success("Workout added successfully!");
   };
 
-  // ✅ Delete Workout
+  // Delete Workout
   const handleDeleteWorkout = (id: number) => {
     const workoutName = workoutToDelete?.exercise || "Workout";
     setWorkouts(workouts.filter((w: Workout) => w.id !== id));
@@ -179,7 +179,7 @@ const WorkoutTracker = () => {
     setWorkoutToDelete(null);
   };
 
-  // ✅ Group workouts by date
+  // Group workouts by date
   const groupWorkoutsByDate = () => {
     const grouped: Record<string, Workout[]> = {};
 
@@ -229,7 +229,7 @@ const WorkoutTracker = () => {
       <div className="fixed inset-0 w-full h-full z-10 hidden md:block">
         <div className="w-1/2 h-full absolute left-0 top-0">
           <Image
-            src="/man-workout.jpg"
+            src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Man workout"
             fill
             priority
@@ -238,7 +238,7 @@ const WorkoutTracker = () => {
         </div>
         <div className="w-1/2 h-full absolute right-0 top-0">
           <Image
-            src="/woman-workout.jpg"
+            src="https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Woman workout"
             fill
             priority
