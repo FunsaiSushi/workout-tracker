@@ -36,9 +36,9 @@ const ConfirmationModal = ({
   if (!isOpen || !workout) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 ">
       <div
-        className="bg-zinc-800 rounded-2xl max-w-md w-full p-6 border border-zinc-600 shadow-xl"
+        className={`${outfit.className} bg-zinc-800 rounded-2xl max-w-md w-full p-6 border border-zinc-600 shadow-xl`}
         onClick={(e) => e.stopPropagation()} // Prevent clicks from bubbling to backdrop
       >
         <h3 className="text-xl font-bold text-white mb-4">Delete Workout</h3>
